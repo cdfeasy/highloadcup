@@ -18,11 +18,13 @@ package highloadcup.server;
 import highloadcup.service.ClientApi;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
@@ -55,7 +57,11 @@ public final class HttpServer {
                 .channel(NioServerSocketChannel.class)
                 .childHandler(new NewHttpServerInit(api))
                 .childOption(ChannelOption.SO_KEEPALIVE, true);
+
+
+
         ch = b.bind(port).sync().channel();
+
 
         System.err.println("Open your web browser and navigate to " +
                 "http" + "://127.0.0.1:" + port + '/');

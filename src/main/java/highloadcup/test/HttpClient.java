@@ -3,6 +3,7 @@ import highloadcup.server.HttpServer;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -62,8 +63,8 @@ public final class HttpClient {
             request.headers().set(HttpHeaderNames.HOST, host);
             request.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
             request.headers().setInt(HttpHeaderNames.CONTENT_LENGTH, request.content().readableBytes());
-            ch.writeAndFlush(request);
-            ch.closeFuture().sync();
+            ChannelFuture channelFuture = ch.writeAndFlush(request);
+            channelFuture.await();
             return "";
         }catch (Exception ex){
             //
@@ -79,8 +80,8 @@ public final class HttpClient {
         request.headers().set(HttpHeaderNames.HOST, host);
         request.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
         request.headers().setInt(HttpHeaderNames.CONTENT_LENGTH, request.content().readableBytes());
-        ch.writeAndFlush(request);
-        ch.closeFuture().sync();
+        ChannelFuture channelFuture = ch.writeAndFlush(request);
+        channelFuture.await();
         return "";
     }
 

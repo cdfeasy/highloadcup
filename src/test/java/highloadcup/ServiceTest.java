@@ -71,7 +71,10 @@ public class ServiceTest {
         System.out.println(sender1.get("http://127.0.0.1:8080/users/new?ololo=alala"));
         System.out.println(sender1.get("http://127.0.0.1:8080/users/new?ololo=alala"));
         System.out.println(sender1.get("http://127.0.0.1:8080/users/new?ololo=alala"));
-
+        // System.out.println(client.get("http://127.0.0.1:8080/users/8728/visits?toDistance=cedbedfceaeebcbacdfcbdeeffaebeda"));
+        System.out.println(client.get("http://127.0.0.1:8080/locations/112/avg?toDate=1215043200&fromDate=1497052800&toAge=54&fromAge=21&gender=m"));
+        System.out.println(client.get("http://127.0.0.1:8080/users/100174"));
+        System.out.println(client.get("http://127.0.0.1:8080/locations/112/avg?fromAge=10&country=Италия"));
 
         System.out.println(client.post("http://127.0.0.1:8080/users/new?ololo=alala", str));
        // System.out.println(client.get("http://127.0.0.1:8080/users/8728/visits?toDistance=cedbedfceaeebcbacdfcbdeeffaebeda"));

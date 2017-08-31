@@ -1,6 +1,7 @@
 package highloadcup.server;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -26,10 +27,18 @@ public class TestRequestHandler extends ChannelInboundHandlerAdapter  {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof ByteBuf) {
+            ctx.write(Unpooled.wrappedBuffer(("HTTP/1.1 200 OK\n" +
+                    "content-type: application/json; charset=utf-8\n" +
+                    "content-length: 2\n" +
+                    "connection: keep-alive\n" +
+                    "\n" +
+                    "{}").getBytes()));
+        //    handler.read(ctx,msg);
+            //ctx.write("\r\n".getBytes());
+          //  ctx.flush();
 
-            handler.read(ctx,msg);
-            ctx.flush();
             ReferenceCountUtil.release(msg);
+            ctx.fireChannelReadComplete();
         //    ctx.flush();
          //   ((ByteBuf) msg).release();
           //  ctx.read();
