@@ -8,10 +8,14 @@ import highloadcup.service.Deserializer;
 import highloadcup.service.Init;
 import highloadcup.test.HttpClient;
 import highloadcup.test.Sender;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.time.Year;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -107,35 +111,41 @@ public class ServiceTest {
     @Test
    // @Ignore
     public void otherTest() throws Exception {
-        String str = "{\n" +
-                "  \"first_name\": \"Данила\",\n" +
-                "  \"last_name\": \"Стыкушувич\",\n" +
-                "  \"gender\": \"m\",\n" +
-                "  \"id\": 1100000,\n" +
-                "  \"birth_date\": 843091200,\n" +
-                "  \"email\": \"idsornawsotne@me.com\"\n" +
-                "}";
-        String str1="{\n" +
-                "  \"birth_date\": 47779200,\n" +
-                "  \"first_name\": \"Аркадий\"\n" +
-                "}";
-        DataHolder holder = new DataHolder();
-        init(holder);
-        ClientApi api = new ClientApi(holder);
-        System.out.println(api.addUser(new ByteArrayInputStream(str.getBytes())));
-        System.out.println(api.updateUser("1100000",new ByteArrayInputStream(str1.getBytes())));
-        System.out.println(api.getUser("1100000").toString());
+//        String str = "{\n" +
+//                "  \"first_name\": \"Данила\",\n" +
+//                "  \"last_name\": \"Стыкушувич\",\n" +
+//                "  \"gender\": \"m\",\n" +
+//                "  \"id\": 1100000,\n" +
+//                "  \"birth_date\": 843091200,\n" +
+//                "  \"email\": \"idsornawsotne@me.com\"\n" +
+//                "}";
+//        String str1="{\n" +
+//                "  \"birth_date\": 47779200,\n" +
+//                "  \"first_name\": \"Аркадий\"\n" +
+//                "}";
+//        DataHolder holder = new DataHolder();
+//        init(holder);
+//        ClientApi api = new ClientApi(holder);
+//        System.out.println(api.addUser(new ByteArrayInputStream(str.getBytes())));
+//        System.out.println(api.updateUser("1100000",new ByteArrayInputStream(str1.getBytes())));
+//        System.out.println(api.getUser("1100000").toString());
+//        "fdsf".getBytes();
+//        ByteBuf b= Unpooled.directBuffer(100000);
+//        Unpooled.copiedBuffer(new char[]{}, StandardCharsets.UTF_8);
+
 
 //        String _user="{\"user\": 84, \"location\": 54, \"visited_at\": 957879823, \"id\": 1, \"mark\": 2";
 //        Any deserialize = JsonIterator.deserialize(_user);
 //        System.out.println(deserialize.as(User.class));
 
-//        ByteBuffer sb=ByteBuffer.allocate(100000);
-//        sb.put("ololo".getBytes());
-//        sb.put("ololo".getBytes());
-//        sb.put("alala".getBytes());
-//        System.out.println(""+new String(sb.arrayOf+"/");
-      //  sb.setLength(0);
+        ByteBuffer sb= ByteBuffer.allocate(100000);
+        sb.put("ololo".getBytes());
+        sb.put("ololo".getBytes());
+        sb.put("alala".getBytes());
+        sb.flip();
+        byte[] bytes=new byte[sb.remaining()];
+        sb.get(bytes);
+        System.out.println(""+new String(bytes));
 
 
 
