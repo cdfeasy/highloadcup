@@ -20,23 +20,24 @@ public class HttpClientHandler extends SimpleChannelInboundHandler<HttpObject> {
         this.success = success;
     }
 
-    @Override
-    protected void messageReceived(ChannelHandlerContext ctx, HttpObject msg) throws Exception {
-        try {
-            if (msg instanceof FullHttpResponse) {
-                HttpResponse response = (HttpResponse) msg;
-                HttpContent content = (HttpContent) msg;
-              //  logger.info("content=" + content.content().toString(CharsetUtil.UTF_8));
-                success.incrementAndGet();
-            }
-        } finally {
-           // ((FullHttpResponse) msg).release();
-        }
-    }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         cause.printStackTrace();
         ctx.close();
+    }
+
+    @Override
+    protected void channelRead0(ChannelHandlerContext channelHandlerContext, HttpObject msg) throws Exception {
+        try {
+            if (msg instanceof FullHttpResponse) {
+                HttpResponse response = (HttpResponse) msg;
+                HttpContent content = (HttpContent) msg;
+                logger.info("content=" + content.content().toString(CharsetUtil.UTF_8));
+                success.incrementAndGet();
+            }
+        } finally {
+            // ((FullHttpResponse) msg).release();
+        }
     }
 }

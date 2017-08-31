@@ -53,9 +53,8 @@ public final class HttpServer {
         b.option(ChannelOption.SO_BACKLOG, 1024);
         b.group(bossGroup, workerGroup)
                 .channel(NioServerSocketChannel.class)
-                .handler(new LoggingHandler(LogLevel.INFO))
-                .childHandler(new NewHttpServerInit(api));
-
+                .childHandler(new NewHttpServerInit(api))
+                .childOption(ChannelOption.SO_KEEPALIVE, true);
         ch = b.bind(port).sync().channel();
 
         System.err.println("Open your web browser and navigate to " +

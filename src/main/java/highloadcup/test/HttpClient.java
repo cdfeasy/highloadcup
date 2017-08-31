@@ -3,6 +3,7 @@ import highloadcup.server.HttpServer;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -32,7 +33,9 @@ public final class HttpClient {
             b = new Bootstrap();
             b.group(group)
                     .channel(NioSocketChannel.class)
-                    .handler(new HttpClientInitializer(success));
+                    .handler(new HttpClientInitializer(success))
+                    .option(ChannelOption.SO_KEEPALIVE, true);
+
         } finally {
         }
 
@@ -57,7 +60,7 @@ public final class HttpClient {
             DefaultFullHttpRequest request = new DefaultFullHttpRequest(
                     HttpVersion.HTTP_1_1, HttpMethod.GET, URL, Unpooled.copiedBuffer("".getBytes()));
             request.headers().set(HttpHeaderNames.HOST, host);
-            request.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
+            request.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
             request.headers().setInt(HttpHeaderNames.CONTENT_LENGTH, request.content().readableBytes());
             ch.writeAndFlush(request);
             ch.closeFuture().sync();
@@ -74,7 +77,7 @@ public final class HttpClient {
         DefaultFullHttpRequest request = new DefaultFullHttpRequest(
                 HttpVersion.HTTP_1_1, HttpMethod.POST, URL, Unpooled.copiedBuffer(body.getBytes()));
         request.headers().set(HttpHeaderNames.HOST, host);
-        request.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
+        request.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
         request.headers().setInt(HttpHeaderNames.CONTENT_LENGTH, request.content().readableBytes());
         ch.writeAndFlush(request);
         ch.closeFuture().sync();

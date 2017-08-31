@@ -1,10 +1,12 @@
 package highloadcup.server;
 
 import highloadcup.service.ClientApi;
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +20,7 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 /**
  * Created by dmitry on 20.08.2017.
  */
-public class NewHttpServerHandler extends ChannelHandlerAdapter {
+public class NewHttpServerHandler extends SimpleChannelInboundHandler {
     private final Logger logger = LoggerFactory.getLogger(NewHttpServerHandler.class);
     private ClientApi api;
 
@@ -64,19 +66,17 @@ public class NewHttpServerHandler extends ChannelHandlerAdapter {
     public NewHttpServerHandler(ClientApi api) {
         this.api = api;
     }
-
-    @Override
-    public void channelReadComplete(ChannelHandlerContext ctx) {
-        ctx.flush();
+    public void   read(ChannelHandlerContext ctx, Object msg) throws Exception {
+        channelRead0(ctx, msg);
     }
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) {
+    protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
         //logger.info("thread "+Thread.currentThread().getName());
         if (msg instanceof FullHttpRequest) {
             FullHttpRequest req = (FullHttpRequest) msg;
             try {
-                boolean keepAlive = HttpHeaderUtil.isKeepAlive(req);
+                boolean keepAlive = HttpUtil.isKeepAlive(req);
                 ClientApi.Response resp = ApiHandler.transfer(api, ctx, msg);
                 FullHttpResponse response = null;
                 if (resp.getStatus() == 200 && resp.getResponse() != null && resp.getResponse().length!=2) {
@@ -115,6 +115,11 @@ public class NewHttpServerHandler extends ChannelHandlerAdapter {
             } finally {
                 req.release();
             }
+        }else {
+            FullHttpResponse resp=defaultOkAlive.duplicate().retain();
+            ctx.write(resp);
+            //((ByteBuf)msg).release();
+           // ctx.fireChannelRead(resp);
         }
     }
 

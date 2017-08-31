@@ -30,7 +30,7 @@ public class ServiceTest {
         Init.initUsers(ServiceTest.class.getResourceAsStream("/users_1.json"), holder);
         Init.initLocations(ServiceTest.class.getResourceAsStream("/locations_1.json"), holder);
         Init.initVisits(ServiceTest.class.getResourceAsStream("/visits_1.json"), holder);
-        Init.getOptions("d:\\work\\highloadcup\\data\\options.txt");
+        Init.getOptions("c:\\tmp\\1\\highloadcup\\data\\options.txt");
     }
 
     @Test
@@ -67,6 +67,13 @@ public class ServiceTest {
         String visit1 = "{\"user\": 100174, \"location\": 100001, \"visited_at\": 957879823, \"id\": 100001, \"mark\": 4}";
         String visit1_5 = "{\"user\": 100174, \"location\": 100001, \"visited_at\": 957879823, \"id\": 100002, \"mark\": 1}";
         String visit2 = "{\"user\": 100174, \"location\": 100002, \"visited_at\": 957879823, \"mark\": 1}";
+        Sender sender1=new Sender();
+        System.out.println(sender1.get("http://127.0.0.1:8080/users/new?ololo=alala"));
+        System.out.println(sender1.get("http://127.0.0.1:8080/users/new?ololo=alala"));
+        System.out.println(sender1.get("http://127.0.0.1:8080/users/new?ololo=alala"));
+
+
+        System.out.println(client.post("http://127.0.0.1:8080/users/new?ololo=alala", str));
        // System.out.println(client.get("http://127.0.0.1:8080/users/8728/visits?toDistance=cedbedfceaeebcbacdfcbdeeffaebeda"));
         System.out.println(client.get("http://127.0.0.1:8080/locations/112/avg?toDate=1215043200&fromDate=1497052800&toAge=54&fromAge=21&gender=m"));
         System.out.println(client.get("http://127.0.0.1:8080/users/100174"));

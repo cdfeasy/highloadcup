@@ -1,6 +1,7 @@
 package highloadcup;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import org.junit.Assert;
 import org.junit.Test;
 import sun.nio.cs.Surrogate;
@@ -8,6 +9,7 @@ import sun.nio.cs.Surrogate;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.CoderResult;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Created by d.asadullin on 31.08.2017.
@@ -42,8 +44,11 @@ public class StringTest {
         bb.flip();
         byte[] b=new byte[bb.remaining()];
         bb.get(b);
-        Assert.assertEquals(str,new String(b));
-        Assert.assertArrayEquals(str.getBytes(),b);
+        Assert.assertEquals(str,new String(b,StandardCharsets.UTF_8));
+        Assert.assertArrayEquals(str.getBytes(StandardCharsets.UTF_8),b);
+
+        ByteBuf byteBuf= Unpooled.directBuffer(1000);
+
     }
 
 }

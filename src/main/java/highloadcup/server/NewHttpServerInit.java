@@ -22,10 +22,14 @@ public class NewHttpServerInit extends ChannelInitializer<SocketChannel> {
 
         // HttpServerCodec is a combination of HttpRequestDecoder and HttpResponseEncoder
 //        p.addLast(new HttpServerCodec());
+        NewHttpServerHandler newHttpServerHandler = new NewHttpServerHandler(api);;
 
-        p.addLast(new HttpResponseEncoder());
-        p.addLast(new HttpRequestDecoder());
-        p.addLast(new HttpObjectAggregator(Integer.MAX_VALUE));
+      //  new HttpRequestDecoder();
+    //    p.addLast(new HttpRequestDecoder());
+      //  p.addLast(new HttpResponseEncoder());
+        p.addLast(new TestRequestHandler(newHttpServerHandler));
+
+       // p.addLast(new HttpObjectAggregator(Integer.MAX_VALUE));
        // p.addLast(new ChannelTrafficShapingHandler());
 
 
@@ -36,6 +40,6 @@ public class NewHttpServerInit extends ChannelInitializer<SocketChannel> {
         //p.addLast(new HttpResponseEncoder());
       //  p.addLast(new ChunkedWriteHandler());
 
-        p.addLast(new NewHttpServerHandler(api));
+      //  p.addLast(newHttpServerHandler);
     }
 }

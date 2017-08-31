@@ -46,7 +46,7 @@ public class Sender {
                 AsyncHttpClient.BoundRequestBuilder boundRequestBuilder;
                 boundRequestBuilder = httpClient.prepareGet(url);
                 boundRequestBuilder.addHeader("Content-Type", "application/json; charset=utf-8");
-                boundRequestBuilder.addHeader("Connection", "close");
+                boundRequestBuilder.addHeader("Connection", "keep-alive");
                 Future<Response> future = boundRequestBuilder.execute();
                 com.ning.http.client.Response response = future.get();
                 return response.getResponseBody();
