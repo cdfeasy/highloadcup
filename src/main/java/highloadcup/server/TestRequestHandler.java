@@ -27,6 +27,9 @@ public class TestRequestHandler extends ChannelInboundHandlerAdapter  {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof ByteBuf) {
+            RequestParser parser=new RequestParser();
+            parser.parse(ctx,(ByteBuf)msg);
+
             ctx.write(Unpooled.wrappedBuffer(("HTTP/1.1 200 OK\n" +
                     "content-type: application/json; charset=utf-8\n" +
                     "content-length: 2\n" +
