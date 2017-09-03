@@ -238,7 +238,7 @@ public class Heater {
                 int userId = api.getDataHolder().getRandomUserId();
                 es.submit(() -> {
                     cnt.incrementAndGet();
-                    ClientApi.Response get = api.request("/users/" + userId, "GET", null, null);
+                    ClientApi.Response get = api.request("/users/" + userId, false, null, null);
                     if (get != null && get.getStatus()==200) {
                         success.incrementAndGet();
                     }
@@ -248,7 +248,7 @@ public class Heater {
                 int locationId = api.getDataHolder().getRandomLocationId();
                 es.submit(() -> {
                     cnt.incrementAndGet();
-                    ClientApi.Response s = api.request("/locations/" + locationId, "GET", null, null);
+                    ClientApi.Response s = api.request("/locations/" + locationId, false, null, null);
                     if (s != null&& s.getStatus()==200) {
                         success.incrementAndGet();
                     }
@@ -258,7 +258,7 @@ public class Heater {
                 int visitId = api.getDataHolder().getRandomVisitId();
                 es.submit(() -> {
                     cnt.incrementAndGet();
-                    ClientApi.Response s = api.request("/visits/" + visitId, "GET", null, null);
+                    ClientApi.Response s = api.request("/visits/" + visitId, false, null, null);
                     if (s != null&& s.getStatus()==200) {
                         success.incrementAndGet();
                     }
@@ -275,7 +275,7 @@ public class Heater {
                 req[4]=r.nextInt(20);
                 req[5]=r.nextInt(80);
                 req[6]=new Boolean(r.nextInt(1) == 0);
-                ClientApi.Response s = api.request(request, "GET", req, null);
+                ClientApi.Response s = api.request(request, false, req, null);
                 if (s != null &&  s.getStatus()==200) {
                     success.incrementAndGet();
                 }
@@ -292,7 +292,7 @@ public class Heater {
                 req[4]=r.nextInt(20);
                 req[0]=Long.valueOf(r.nextInt());
                 req[6]=new Boolean(r.nextInt(1) == 0);
-                ClientApi.Response s = api.request(request, "GET", req, null);
+                ClientApi.Response s = api.request(request, false, req, null);
                 if (s != null &&  s.getStatus()==200) {
                     success.incrementAndGet();
                 }
@@ -309,7 +309,7 @@ public class Heater {
                 req[4]=r.nextInt(20);
                 req[1]=Long.valueOf(r.nextInt());
                 req[6]=new Boolean(r.nextInt(1) == 0);
-                ClientApi.Response s = api.request(request, "GET", req, null);
+                ClientApi.Response s = api.request(request, false, req, null);
                 if (s != null &&  s.getStatus()==200) {
                     success.incrementAndGet();
                 }
@@ -325,7 +325,7 @@ public class Heater {
                 Object[] req=new Object[7];
                 req[1]=Long.valueOf(r.nextInt());
                 req[3]=r.nextInt(20);
-                ClientApi.Response s = api.request(request, "GET", req, null);
+                ClientApi.Response s = api.request(request, false, req, null);
                 if (s != null &&  s.getStatus()==200) {
                     success.incrementAndGet();
                 }
@@ -338,7 +338,7 @@ public class Heater {
                 cnt.incrementAndGet();
                 Integer userId = api.getDataHolder().getRandomUserId();
                 String request=String.format("/users/%d/visits", userId);
-                ClientApi.Response s = api.request(request, "GET", null, null);
+                ClientApi.Response s = api.request(request, false, null, null);
                 if (s != null &&  s.getStatus()==200) {
                     success.incrementAndGet();
                 }
@@ -354,7 +354,7 @@ public class Heater {
                 Object[] req=new Object[7];
                 req[0]=Long.valueOf(r.nextInt());
                 req[3]=r.nextInt(20);
-                ClientApi.Response s = api.request(request, "GET", req, null);
+                ClientApi.Response s = api.request(request,false, req, null);
                 if (s != null &&  s.getStatus()==200) {
                     success.incrementAndGet();
                 }

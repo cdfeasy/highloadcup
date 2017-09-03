@@ -45,7 +45,7 @@ public class EpollHttpServer {
         ch = b.bind(port).sync().channel();
         final ChannelGroup channels =
                 new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
-        System.err.println("Open your web browser and navigate to " +
+        System.err.println("пыщь пыщь ололо " +
                 "http" + "://127.0.0.1:" + port + '/');
 
         // ch.closeFuture().sync();

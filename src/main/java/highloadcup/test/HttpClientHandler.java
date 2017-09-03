@@ -33,7 +33,7 @@ public class HttpClientHandler extends SimpleChannelInboundHandler<HttpObject> {
             if (msg instanceof FullHttpResponse) {
                 HttpResponse response = (HttpResponse) msg;
                 HttpContent content = (HttpContent) msg;
-                logger.info("content=" + content.content().toString(CharsetUtil.UTF_8));
+          //      logger.info("status={} content={}",response.status(), content.content().toString(CharsetUtil.UTF_8));
                 success.incrementAndGet();
             }
         } finally {

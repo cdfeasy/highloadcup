@@ -64,7 +64,7 @@ public final class HttpClient {
             request.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
             request.headers().setInt(HttpHeaderNames.CONTENT_LENGTH, request.content().readableBytes());
             ChannelFuture channelFuture = ch.writeAndFlush(request);
-            channelFuture.await();
+            channelFuture.await(1000);
             return "";
         }catch (Exception ex){
             //
@@ -81,7 +81,8 @@ public final class HttpClient {
         request.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
         request.headers().setInt(HttpHeaderNames.CONTENT_LENGTH, request.content().readableBytes());
         ChannelFuture channelFuture = ch.writeAndFlush(request);
-        channelFuture.await();
+        channelFuture.await(1000);
+        Thread.sleep(100);
         return "";
     }
 

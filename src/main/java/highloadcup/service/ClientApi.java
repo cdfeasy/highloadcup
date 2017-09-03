@@ -3,6 +3,7 @@ package highloadcup.service;
 import highloadcup.entity.Location;
 import highloadcup.entity.User;
 import highloadcup.entity.Visit;
+import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,13 +58,13 @@ public class ClientApi {
     }
 
 
-    public Response request(String url, String method, Object[] params, InputStream content) {
+    public Response request(String url, boolean isPost, Object[] params, ByteBuf content) {
         try {
             String[] parts = url.length() > 0 ? url.substring(1).split("/") : new String[]{};
-            if ("GET".equals(method)) {
+            if (!isPost) {
                 Response x = processGet(parts, params);
                 if (x != null) return x;
-            } else if ("POST".equals(method)) {
+            } else {
                 Response x = processPost(parts, content);
                 if (x != null) return x;
             }
@@ -74,7 +75,7 @@ public class ClientApi {
         }
     }
 
-    private Response processPost(String[] parts, InputStream content) {
+    private Response processPost(String[] parts, ByteBuf content) {
         if (parts.length == 2) {
             if ("users".equals(parts[0])) {
                 if ("new".equals(parts[1])) {
@@ -209,10 +210,10 @@ public class ClientApi {
         return (double) tmp / factor;
     }
 
-    public Response updateUser(String id, InputStream user) {
+    public Response updateUser(String id, ByteBuf user) {
         try {
             Integer _id = Integer.valueOf(id);
-            User _user = Deserializer.toUpdateUser(user);
+            User _user = StreamBufParser.toUpdateUser(user);
             if (_user == null) {
                 return new Response(DataHolder.INCORRECT_RESP);
             }
@@ -223,10 +224,10 @@ public class ClientApi {
         }
     }
 
-    public Response updateVisit(String id, InputStream visit) {
+    public Response updateVisit(String id, ByteBuf visit) {
         try {
             Integer _id = Integer.valueOf(id);
-            Visit _visit = Deserializer.toUpdateVisit(visit);
+            Visit _visit = StreamBufParser.toUpdateVisit(visit);
             if (_visit == null) {
                 return new Response(DataHolder.INCORRECT_RESP);
             }
@@ -237,10 +238,10 @@ public class ClientApi {
         }
     }
 
-    public Response updateLocation(String id, InputStream location) {
+    public Response updateLocation(String id, ByteBuf location) {
         try {
             Integer _id = Integer.valueOf(id);
-            Location _location = Deserializer.toUpdateLocation(location);
+            Location _location = StreamBufParser.toUpdateLocation(location);
             if (_location == null) {
                 return new Response(DataHolder.INCORRECT_RESP);
             }
@@ -251,8 +252,8 @@ public class ClientApi {
         }
     }
 
-    public Response addUser(InputStream user) {
-        User _user = Deserializer.toAddUser(user);
+    public Response addUser(ByteBuf user) {
+        User _user = StreamBufParser.toAddUser(user);
         if (_user == null) {
             return new Response(DataHolder.INCORRECT_RESP);
         }
@@ -260,8 +261,8 @@ public class ClientApi {
         return new Response(status);
     }
 
-    public Response addVisit(InputStream visit) {
-        Visit _visit = Deserializer.toAddVisit(visit);
+    public Response addVisit(ByteBuf visit) {
+        Visit _visit = StreamBufParser.toAddVisit(visit);
         if (_visit == null) {
             return new Response(DataHolder.INCORRECT_RESP);
         }
@@ -269,8 +270,8 @@ public class ClientApi {
         return new Response(status);
     }
 
-    public Response addLocation(InputStream location) {
-        Location _location = Deserializer.toAddLocation(location);
+    public Response addLocation(ByteBuf location) {
+        Location _location = StreamBufParser.toAddLocation(location);
         if (_location == null) {
             return new Response(DataHolder.INCORRECT_RESP);
         }

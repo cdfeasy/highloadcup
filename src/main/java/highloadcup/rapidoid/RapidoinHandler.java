@@ -80,7 +80,7 @@ public class RapidoinHandler extends AbstractHttpServer {
             byte[] body = BytesUtil.getBytes(buf.bytes(), req.body);
             is = new ByteArrayInputStream(body);
         }
-        ClientApi.Response response = api.request(path, protocol, uriToQueryArray, is);
+        ClientApi.Response response = null;//api.request(path, protocol, uriToQueryArray, is);
         startResponse(ctx, req.isKeepAlive.value, response.getStatus());
         writeBody(ctx, (response.getResponse() != null ? response.getResponse() : "{}".getBytes()), MediaType.APPLICATION_JSON);
     }

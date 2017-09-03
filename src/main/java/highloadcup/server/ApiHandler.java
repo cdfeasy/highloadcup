@@ -8,6 +8,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.QueryStringDecoder;
+import org.rapidoid.commons.Str;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -166,11 +167,6 @@ public class ApiHandler {
     public static Object[] uriToQueryArray(String uri) {
         Object[] res = new Object[7];
         String query = uri;
-//        try {
-//            query = decodeComponent(query, StandardCharsets.UTF_8);
-//        } catch (Exception ex) {
-//            res[0] = "error";
-//        }
         String[] parts = query.split("&");
         try {
             for (String part : parts) {
@@ -226,32 +222,18 @@ public class ApiHandler {
         return res;
     }
 
-    /**
-     * api data I/O port
-     *
-     * @param ctx
-     * @param msg
-     * @return
-     */
-    public static ClientApi.Response transfer(ClientApi api, ChannelHandlerContext ctx, Object msg) {
+    public static ClientApi.Response transfer(ClientApi api, ByteBuf buf, boolean isPost, String uri) {
         //   ApiProtocol apiProtocol = new ApiProtocol(msg);
         try {
-            HttpRequest req = (HttpRequest) msg;
-            String uri = req.uri();
-            InputStream is = null;
-            String method = req.method().toString();
             String endpoint = parseEndpoint(uri);
             Object[] uriToQueryArray = null;
-            if ("GET".equals(method)) {
+            if (!isPost) {
                 uriToQueryArray = urlToQueryArray(uri);
                 if (uriToQueryArray != null && "error".equals(uriToQueryArray[0])) {
                     return new ClientApi.Response(DataHolder.INCORRECT_RESP);
                 }
             }
-            if ("POST".equals(method)) {
-                is = requestBodyHandler(msg);
-            }
-            ClientApi.Response response = api.request(endpoint, method, uriToQueryArray, is);
+            ClientApi.Response response = api.request(endpoint, isPost, uriToQueryArray, buf);
             return response;
         }catch (Exception ex){
             logger.error("error",ex);
