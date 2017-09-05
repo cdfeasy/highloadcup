@@ -6,8 +6,12 @@ import org.junit.Assert;
 import org.junit.Test;
 import sun.nio.cs.Surrogate;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
+import java.nio.channels.AsynchronousServerSocketChannel;
+import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.charset.CoderResult;
 import java.nio.charset.StandardCharsets;
 
@@ -46,6 +50,28 @@ public class StringTest {
         bb.get(b);
         Assert.assertEquals(str,new String(b,StandardCharsets.UTF_8));
         Assert.assertArrayEquals(str.getBytes(StandardCharsets.UTF_8),b);
+
+        ByteBuf byteBuf= Unpooled.directBuffer(1000);
+
+    }
+
+
+
+    @Test
+    public void testSchannel() throws IOException {
+        ByteBuffer bb= ByteBuffer.allocate(100000);
+        AsynchronousServerSocketChannel serverChannel = AsynchronousServerSocketChannel.open();
+        InetSocketAddress hostAddress = new InetSocketAddress("localhost", 3883);
+        serverChannel.bind(hostAddress);
+
+
+
+        AsynchronousSocketChannel channel=AsynchronousSocketChannel.open();
+
+        byte[] b=new byte[bb.remaining()];
+        bb.get(b);
+//        Assert.assertEquals(str,new String(b,StandardCharsets.UTF_8));
+//        Assert.assertArrayEquals(str.getBytes(StandardCharsets.UTF_8),b);
 
         ByteBuf byteBuf= Unpooled.directBuffer(1000);
 
