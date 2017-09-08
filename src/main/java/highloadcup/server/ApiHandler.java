@@ -222,7 +222,7 @@ public class ApiHandler {
         return res;
     }
 
-    public static ClientApi.Response transfer(ClientApi api, ByteBuf buf, boolean isPost, String uri) {
+    public static ClientApi.Response transfer(ClientApi api, ByteBuf buf, boolean isPost, String uri,boolean debug) {
         //   ApiProtocol apiProtocol = new ApiProtocol(msg);
         try {
             String endpoint = parseEndpoint(uri);
@@ -233,7 +233,7 @@ public class ApiHandler {
                     return new ClientApi.Response(DataHolder.INCORRECT_RESP);
                 }
             }
-            ClientApi.Response response = api.request(endpoint, isPost, uriToQueryArray, buf);
+            ClientApi.Response response = api.request(endpoint, isPost, uriToQueryArray, buf,debug);
             return response;
         }catch (Exception ex){
             logger.error("error",ex);

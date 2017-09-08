@@ -19,6 +19,7 @@ public class DataHolder {
     public static int OK_RESP = 200;
     public static int NOTFOUND_RESP = 404;
     public static int INCORRECT_RESP = 400;
+    public static int WAIT = -1;
     public static Comparator<Visit> vComp = (o1, o2) -> o1.getVisited_at() > o2.getVisited_at() ? 1 : o1.getVisited_at() == o2.getVisited_at() ? 0 : -1;
     Logger logger = LoggerFactory.getLogger(DataHolder.class);
     private Random r = new Random();

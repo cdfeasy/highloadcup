@@ -50,7 +50,7 @@ public class ClientApi {
                 sb.append("\"status\":" + "\"" + getStatus() + "\"" + ",");
             }
             if (getResponse() != null) {
-                sb.append("\"response\":" + "\"" + getResponse() + "\"" + "");
+                sb.append("\"response\":" + "\"" + new String(getResponse()) + "\"" + "");
             }
             sb.append("}");
             return sb.toString();
@@ -58,14 +58,14 @@ public class ClientApi {
     }
 
 
-    public Response request(String url, boolean isPost, Object[] params, ByteBuf content) {
+    public Response request(String url, boolean isPost, Object[] params, ByteBuf content,boolean debug) {
         try {
             String[] parts = url.length() > 0 ? url.substring(1).split("/") : new String[]{};
             if (!isPost) {
                 Response x = processGet(parts, params);
                 if (x != null) return x;
             } else {
-                Response x = processPost(parts, content);
+                Response x = processPost(parts, content,debug);
                 if (x != null) return x;
             }
             return new Response(DataHolder.NOTFOUND_RESP);
@@ -75,25 +75,25 @@ public class ClientApi {
         }
     }
 
-    private Response processPost(String[] parts, ByteBuf content) {
+    private Response processPost(String[] parts, ByteBuf content,boolean debug) {
         if (parts.length == 2) {
             if ("users".equals(parts[0])) {
                 if ("new".equals(parts[1])) {
-                    return addUser(content);
+                    return addUser(content,debug);
                 } else {
-                    return updateUser(parts[1], content);
+                    return updateUser(parts[1], content,debug);
                 }
             } else if ("visits".equals(parts[0])) {
                 if ("new".equals(parts[1])) {
-                    return addVisit(content);
+                    return addVisit(content,debug);
                 } else {
-                    return updateVisit(parts[1], content);
+                    return updateVisit(parts[1], content,debug);
                 }
             } else if ("locations".equals(parts[0])) {
                 if ("new".equals(parts[1])) {
-                    return addLocation(content);
+                    return addLocation(content,debug);
                 } else {
-                    return updateLocation(parts[1], content);
+                    return updateLocation(parts[1], content,debug);
                 }
             } else {
                 return new Response(DataHolder.NOTFOUND_RESP);
@@ -210,12 +210,15 @@ public class ClientApi {
         return (double) tmp / factor;
     }
 
-    public Response updateUser(String id, ByteBuf user) {
+    public Response updateUser(String id, ByteBuf user,boolean debug) {
         try {
             Integer _id = Integer.valueOf(id);
             User _user = StreamBufParser.toUpdateUser(user);
             if (_user == null) {
                 return new Response(DataHolder.INCORRECT_RESP);
+            }
+            if(debug){
+               // logger.info("Debug user:"+_user.toString());
             }
             Integer status = dataHolder.updateUser(_id, _user);
             return new Response(status);
@@ -224,12 +227,15 @@ public class ClientApi {
         }
     }
 
-    public Response updateVisit(String id, ByteBuf visit) {
+    public Response updateVisit(String id, ByteBuf visit,boolean debug) {
         try {
             Integer _id = Integer.valueOf(id);
             Visit _visit = StreamBufParser.toUpdateVisit(visit);
             if (_visit == null) {
                 return new Response(DataHolder.INCORRECT_RESP);
+            }
+            if(debug){
+              //  logger.info("Debug visit:"+_visit.toString());
             }
             Integer status = dataHolder.updateVisit(_id, _visit);
             return new Response(status);
@@ -238,12 +244,15 @@ public class ClientApi {
         }
     }
 
-    public Response updateLocation(String id, ByteBuf location) {
+    public Response updateLocation(String id, ByteBuf location,boolean debug) {
         try {
             Integer _id = Integer.valueOf(id);
             Location _location = StreamBufParser.toUpdateLocation(location);
             if (_location == null) {
                 return new Response(DataHolder.INCORRECT_RESP);
+            }
+            if(debug){
+              //  logger.info("Debug location:"+_location.toString());
             }
             Integer status = dataHolder.updateLocation(_id, _location);
             return new Response(status);
@@ -252,7 +261,7 @@ public class ClientApi {
         }
     }
 
-    public Response addUser(ByteBuf user) {
+    public Response addUser(ByteBuf user,boolean debug) {
         User _user = StreamBufParser.toAddUser(user);
         if (_user == null) {
             return new Response(DataHolder.INCORRECT_RESP);
@@ -261,7 +270,7 @@ public class ClientApi {
         return new Response(status);
     }
 
-    public Response addVisit(ByteBuf visit) {
+    public Response addVisit(ByteBuf visit,boolean debug) {
         Visit _visit = StreamBufParser.toAddVisit(visit);
         if (_visit == null) {
             return new Response(DataHolder.INCORRECT_RESP);
@@ -270,7 +279,7 @@ public class ClientApi {
         return new Response(status);
     }
 
-    public Response addLocation(ByteBuf location) {
+    public Response addLocation(ByteBuf location,boolean debug) {
         Location _location = StreamBufParser.toAddLocation(location);
         if (_location == null) {
             return new Response(DataHolder.INCORRECT_RESP);

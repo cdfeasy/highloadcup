@@ -28,7 +28,8 @@ public class NewHttpServerInit extends ChannelInitializer<SocketChannel> {
     //    p.addLast(new HttpRequestDecoder());
        // p.addLast(new HttpResponseEncoder());
         p.addLast(new TestRequestHandler(api));
-
+        new HttpRequestDecoder();
+        new HttpObjectAggregator(Integer.MAX_VALUE);
        // p.addLast(new HttpObjectAggregator(Integer.MAX_VALUE));
        // p.addLast(new ChannelTrafficShapingHandler());
 

@@ -30,7 +30,7 @@ public class ServiceTest {
         Init.initUsers(ServiceTest.class.getResourceAsStream("/users_1.json"), holder);
         Init.initLocations(ServiceTest.class.getResourceAsStream("/locations_1.json"), holder);
         Init.initVisits(ServiceTest.class.getResourceAsStream("/visits_1.json"), holder);
-        Init.getOptions("d:\\work\\highloadcup\\data\\options.txt");
+        Init.getOptions("c:\\tmp\\highloadcup\\data\\options.txt");
     }
 
     @Test

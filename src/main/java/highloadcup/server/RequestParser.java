@@ -41,7 +41,7 @@ public class RequestParser {
 //            "email": "idsornawsotne@me.com"
 //    }
 //
-    public static byte[] contentLength = "content-length: ".getBytes();
+    public static byte[] contentLength = "ength: 0".getBytes();
     public static byte[] bodySeparator = "\r\n\r\n".getBytes();
 
     private static int findBytes(ByteBuf data, byte[] array) {
@@ -71,6 +71,13 @@ public class RequestParser {
     private static byte eol = '\n';
     private static int httpSize = " HTTP/1.1\n".length();
 
+    private static void printRequest(ByteBuf data) {
+        int readerIdx = data.readerIndex();
+        data.readerIndex(0);
+        logger.info(data.toString(StandardCharsets.UTF_8));
+        data.readerIndex(readerIdx);
+    }
+
     public static ClientApi.Response parse(ClientApi api, ByteBuf data) {
 //        data= Unpooled.wrappedBuffer(("POST /visits/4900?query_id=1332 HTTP/1.1\n" +
 //                "Host: travels.com\n" +
@@ -80,49 +87,103 @@ public class RequestParser {
 //                "Content-Length: 0\n" +
 //                "Content-Type: application/json").getBytes());
 
+        try {
+            boolean isPost = false;
+            boolean isCorrect = false;
+            int i=0;
+            if (data.readableBytes() < 5) {
+                // logger.info("incorrect request");
+                // printRequest(data);
+//                while (i++<500) {
+//                    Thread.sleep(10);
+//                    if (data.readableBytes() > 5) {
+//                       break;
+//                    }
+//                }
+//                if (data.readableBytes() < 5) {
+//                    return new ClientApi.Response(DataHolder.INCORRECT_RESP);
+//                }
+                return new ClientApi.Response(DataHolder.WAIT);
+            }
+            byte[] type = new byte[4];
+            data.readBytes(type);
+            if (type[0] == 'G' &&
+                    type[1] == 'E' &&
+                    type[2] == 'T') {
+                isCorrect = true;
 
-        boolean isPost = false;
-        if (data.readByte() == 'G') {
-            data.skipBytes(3);
-        } else {
-            data.skipBytes(4);
-            isPost = true;
-        }
-        int fistLineEnd = data.bytesBefore(eol);
-        if(fistLineEnd==-1){
-            return new ClientApi.Response(DataHolder.INCORRECT_RESP);
-        }
-        byte[] request1 = new byte[fistLineEnd - httpSize];
-        data.readBytes(request1);
-        String uri = new String(request1);
-//        if(uri.contains("/users/4048")){
-//            data.readerIndex(0);
-//            logger.info(data.toString(StandardCharsets.UTF_8));
-//        }
-//        if(uri.contains("/users/6136")){
-//            data.readerIndex(0);
-//            logger.info(data.toString(StandardCharsets.UTF_8));
-//        }
-//        if(uri.contains("/visits/4900")){
-//            data.readerIndex(0);
-//            logger.info(data.toString(StandardCharsets.UTF_8));
-//        }
-//        if(uri.contains("/locations/5893")){
-//            data.readerIndex(0);
-//            logger.info(data.toString(StandardCharsets.UTF_8));
-//        }
+            } else if (type[0] == 'P' &&
+                    type[1] == 'O' &&
+                    type[2] == 'S' &&
+                    type[3] == 'T') {
+                isCorrect = true;
+                isPost = true;
+                data.skipBytes(1);
+            }
+            if (!isCorrect) {
+                // logger.info("incorrect type");
+                //printRequest(data);
+                return new ClientApi.Response(DataHolder.INCORRECT_RESP);
+            }
+            int fistLineEnd = data.bytesBefore(eol);
+            if (fistLineEnd == -1 || fistLineEnd - httpSize < 0) {
+                //logger.info("incorrect firstLint");
+                return new ClientApi.Response(DataHolder.WAIT);
+//                while (i++<500) {
+//                    Thread.sleep(10);
+//                    fistLineEnd = data.bytesBefore(eol);
+//                    if (fistLineEnd - httpSize > 0) {
+//                       break;
+//                    }
+//                }
+//                fistLineEnd = data.bytesBefore(eol);
+//                if (fistLineEnd - httpSize < 0) {
+//                    // printRequest(data);
+//                    return new ClientApi.Response(DataHolder.INCORRECT_RESP);
+//                    //return new ClientApi.Response(DataHolder.INCORRECT_RESP);
+//                }
+            }
+            if (isPost && findBytes(data, contentLength) != -1) {
+                return new ClientApi.Response(DataHolder.INCORRECT_RESP);
+            }
 
-        int bodySep = findBytes(data, bodySeparator);
-        if (bodySep != -1) {
-            data.readerIndex(bodySep);
-        }
+            byte[] request1 = new byte[fistLineEnd - httpSize];
+            data.readBytes(request1);
+            String uri = new String(request1);
+            boolean debug = false;
+            if (uri.contains("/locations/5893")) {
+                //  logger.info("test");
+                //  printRequest(data);
+                debug = true;
+            }
+            if (uri.contains("/users/4048")) {
+                //   logger.info("test");
+                //  printRequest(data);
+                debug = true;
+            }
+            if (uri.contains("/users/6136")) {
+                //  logger.info("test");
+                //    printRequest(data);
+                debug = true;
+            }
+            if (uri.contains("/visits/4900")) {
+                //  logger.info("test");
+                //  printRequest(data);
+                debug = true;
+            }
+
+            int bodySep = findBytes(data, bodySeparator);
+            data.writerIndex(data.capacity());
+            if (bodySep != -1) {
+                data.readerIndex(bodySep);
+            }
 //        byte[] body = new byte[data.readableBytes()];
 //        data.readBytes(body);
 //        System.out.println("------------");
 //        System.out.println(new String(body));
 //        System.out.println("------------");
 
-        ClientApi.Response transfer = ApiHandler.transfer(api, data, isPost, uri);
+            ClientApi.Response transfer = ApiHandler.transfer(api, data, isPost, uri, debug);
 //        if (transfer.getStatus() == 400) {
 //
 //            if (isPost) {
@@ -132,7 +193,15 @@ public class RequestParser {
 //
 //
 //        }
-        return transfer;
+            if (debug) {
+                //  logger.info("response {}",transfer);
+                //  printRequest(data);
+            }
+            return transfer;
+        } catch (Exception ex) {
+            logger.error("error", ex);
+            return new ClientApi.Response(DataHolder.INCORRECT_RESP);
+        }
 
         // byte[] request=new byte[fistLineEnd-httpSize-data.readerIndex()];
 //        data.readBytes(request);

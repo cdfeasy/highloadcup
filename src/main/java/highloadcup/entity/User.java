@@ -136,7 +136,7 @@ public class User {
         sb.append("\"email\":\"").append(getEmail()).append("\",");
         sb.append("\"first_name\":\"").append(getFirst_name()).append("\",");
         sb.append("\"last_name\":\"").append(getLast_name()).append("\",");
-        sb.append("\"gender\":\"").append(getGender() ? "m" : "f").append("\",");
+        sb.append("\"gender\":\"").append(getGender()!=null?(getGender()? "m" : "f"):"null").append("\",");
         sb.append("\"birth_date\":").append(getBirth_date());
         sb.append("}");
         return sb.toString();
