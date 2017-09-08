@@ -78,7 +78,7 @@ public class TestRequestHandler extends ChannelInboundHandlerAdapter {
 
     public ClientApi handler;
     ByteBuf cumulation;
-    private boolean first;private int numReads;
+    private boolean first;
     private ByteToMessageDecoder.Cumulator cumulator = MERGE_CUMULATOR;
 
     public TestRequestHandler(ClientApi handler) {
@@ -101,7 +101,6 @@ public class TestRequestHandler extends ChannelInboundHandlerAdapter {
             } else {
                 buf.release();
             }
-            numReads = 0;
             ctx.fireChannelReadComplete();
         }
     }
@@ -109,9 +108,8 @@ public class TestRequestHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) {
-//        ctx.flush();
-        numReads = 0;
-        ctx.fireChannelReadComplete();
+        ctx.flush();
+       // ctx.fireChannelReadComplete();
     }
 
     @Override
@@ -161,16 +159,17 @@ public class TestRequestHandler extends ChannelInboundHandlerAdapter {
                     if (keepAlive) {
                         ctx.write(response);
                         //((ByteBuf) msg).release();
-                       // ctx.fireChannelReadComplete();
+                        ctx.fireChannelReadComplete();
                     } else {
                         ctx.write(response).addListener(ChannelFutureListener.CLOSE);
                       //  ((ByteBuf) msg).release();
-                       // ctx.fireChannelReadComplete();
+                        ctx.fireChannelReadComplete();
                     }
+                    cumulation.release();
+                    cumulation = null;
                 }
             } finally {
                 if (cumulation != null && !cumulation.isReadable()) {
-                    numReads = 0;
                     cumulation.release();
                     cumulation = null;
                 }
