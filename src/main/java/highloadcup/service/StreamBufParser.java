@@ -5,16 +5,12 @@ import highloadcup.entity.User;
 import highloadcup.entity.Visit;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 import static highloadcup.server.ApiHandler.isNumeric;
-import static highloadcup.server.ApiHandler.decodeComponent;
 
 public class StreamBufParser {
     private static Logger logger = LoggerFactory.getLogger(StreamBufParser.class);
@@ -47,10 +43,10 @@ public class StreamBufParser {
         try {
             short[] addresses = new short[size];
             buf.readerIndex(readerIdx);
-            int startIdx = buf.indexOf(readerIdx,buf.capacity(),start);
-            int endIdx = buf.indexOf(readerIdx,buf.capacity(),end);
-            if (endIdx == -1 ||startIdx==-1 || startIdx==endIdx) {
-                addresses[0] = -1;
+            int startIdx = buf.indexOf(readerIdx, buf.writerIndex(), start);
+            int endIdx = buf.indexOf(readerIdx, buf.writerIndex(), end);
+            if (endIdx == -1 || startIdx == -1 || startIdx == endIdx) {
+                addresses[0] = -2;
                 return addresses;
             }
             int i = startIdx + 1;
@@ -113,10 +109,10 @@ public class StreamBufParser {
                 i = commaIdx;
             }
             return addresses;
-        }catch (Exception ex){
-            logger.info("cannot parse "+buf.toString(StandardCharsets.UTF_8),ex);
+        } catch (Exception ex) {
+            logger.info("cannot parse " + buf.toString(StandardCharsets.UTF_8), ex);
             short[] addresses = new short[1];
-            addresses[0]=-1;
+            addresses[0] = -1;
             return addresses;
         }
     }
@@ -156,8 +152,6 @@ public class StreamBufParser {
         System.out.println(toUpdateLocation(buf2));
 
 
-
-
         ByteBuf buf3 = Unpooled.wrappedBuffer(("{\n" +
                 "            \"id\": 7765,\n" +
                 "                \"distance\": 95,\n" +
@@ -176,6 +170,9 @@ public class StreamBufParser {
         if (parse[0] == -1) {
             return null;
         }
+        if (parse[0] == -2) {
+            return ClientApi.waitVisit;
+        }
         String id = null;
         String location = null;
         String user = null;
@@ -184,15 +181,15 @@ public class StreamBufParser {
 
         for (int i = 0; i < parse[0]; i++) {
             if (location == null && arraysEquals(buf, location_bytes, parse[i * 4 + 1], parse[i * 4 + 2])) {
-                location = getValue(buf,parse[i * 4 + 3],parse[i * 4 + 4],false);
+                location = getValue(buf, parse[i * 4 + 3], parse[i * 4 + 4], false);
             } else if (user == null && arraysEquals(buf, user_bytes, parse[i * 4 + 1], parse[i * 4 + 2])) {
-                user = getValue(buf,parse[i * 4 + 3],parse[i * 4 + 4],false);
+                user = getValue(buf, parse[i * 4 + 3], parse[i * 4 + 4], false);
             } else if (visited_at == null && arraysEquals(buf, visited_at_bytes, parse[i * 4 + 1], parse[i * 4 + 2])) {
-                visited_at = getValue(buf,parse[i * 4 + 3],parse[i * 4 + 4],false);
+                visited_at = getValue(buf, parse[i * 4 + 3], parse[i * 4 + 4], false);
             } else if (mark == null && arraysEquals(buf, mark_bytes, parse[i * 4 + 1], parse[i * 4 + 2])) {
-                mark = getValue(buf,parse[i * 4 + 3],parse[i * 4 + 4],false);
+                mark = getValue(buf, parse[i * 4 + 3], parse[i * 4 + 4], false);
             } else if (id == null && arraysEquals(buf, id_bytes, parse[i * 4 + 1], parse[i * 4 + 2])) {
-                id = getValue(buf,parse[i * 4 + 3],parse[i * 4 + 4],false);
+                id = getValue(buf, parse[i * 4 + 3], parse[i * 4 + 4], false);
             }
         }
 
@@ -201,40 +198,40 @@ public class StreamBufParser {
                 user == null ||
                 visited_at == null ||
                 mark == null) {
-            return null;
+            return ClientApi.incorrectVisit;
         }
         int _id;
         if (isNumeric(id)) {
             _id = Integer.valueOf(id);
         } else {
-            return null;
+            return ClientApi.incorrectVisit;
         }
         int _location;
         if (isNumeric(location)) {
             _location = Integer.valueOf(location);
         } else {
-            return null;
+            return ClientApi.incorrectVisit;
         }
         int _user;
         if (isNumeric(user)) {
             _user = Integer.valueOf(user);
         } else {
-            return null;
+            return ClientApi.incorrectVisit;
         }
         long _visited_at;
         if (isNumeric(visited_at)) {
             _visited_at = Long.valueOf(visited_at);
         } else {
-            return null;
+            return ClientApi.incorrectVisit;
         }
         byte _mark;
         if (isNumeric(mark)) {
             _mark = Byte.valueOf(mark);
             if (_mark < 0 || _mark > 5) {
-                return null;
+                return ClientApi.incorrectVisit;
             }
         } else {
-            return null;
+            return ClientApi.incorrectVisit;
         }
         return new Visit(_id, _location, _user, _visited_at, _mark);
     }
@@ -244,6 +241,9 @@ public class StreamBufParser {
         if (parse[0] == -1) {
             return null;
         }
+        if (parse[0] == -2) {
+            return ClientApi.waitVisit;
+        }
         String id = null;
         String location = null;
         String user = null;
@@ -252,70 +252,70 @@ public class StreamBufParser {
 
         for (int i = 0; i < parse[0]; i++) {
             if (location == null && arraysEquals(buf, location_bytes, parse[i * 4 + 1], parse[i * 4 + 2])) {
-                location = getValue(buf,parse[i * 4 + 3],parse[i * 4 + 4],false);
-                if(location==null){
-                    return null;
+                location = getValue(buf, parse[i * 4 + 3], parse[i * 4 + 4], false);
+                if (location == null) {
+                    return ClientApi.incorrectVisit;
                 }
-            } else if (user== null && arraysEquals(buf, user_bytes, parse[i * 4 + 1], parse[i * 4 + 2])) {
-                user = getValue(buf,parse[i * 4 + 3],parse[i * 4 + 4],false);
-                if(user==null){
-                    return null;
+            } else if (user == null && arraysEquals(buf, user_bytes, parse[i * 4 + 1], parse[i * 4 + 2])) {
+                user = getValue(buf, parse[i * 4 + 3], parse[i * 4 + 4], false);
+                if (user == null) {
+                    return ClientApi.incorrectVisit;
                 }
             } else if (visited_at == null && arraysEquals(buf, visited_at_bytes, parse[i * 4 + 1], parse[i * 4 + 2])) {
-                visited_at = getValue(buf,parse[i * 4 + 3],parse[i * 4 + 4],false);
-                if(visited_at==null){
-                    return null;
+                visited_at = getValue(buf, parse[i * 4 + 3], parse[i * 4 + 4], false);
+                if (visited_at == null) {
+                    return ClientApi.incorrectVisit;
                 }
-            } else if (mark== null && arraysEquals(buf, mark_bytes, parse[i * 4 + 1], parse[i * 4 + 2])) {
-                mark = getValue(buf,parse[i * 4 + 3],parse[i * 4 + 4],false);
-                if(mark==null){
-                    return null;
+            } else if (mark == null && arraysEquals(buf, mark_bytes, parse[i * 4 + 1], parse[i * 4 + 2])) {
+                mark = getValue(buf, parse[i * 4 + 3], parse[i * 4 + 4], false);
+                if (mark == null) {
+                    return ClientApi.incorrectVisit;
                 }
-            } else if (id== null && arraysEquals(buf, id_bytes, parse[i * 4 + 1], parse[i * 4 + 2])) {
-                id = getValue(buf,parse[i * 4 + 3],parse[i * 4 + 4],false);
+            } else if (id == null && arraysEquals(buf, id_bytes, parse[i * 4 + 1], parse[i * 4 + 2])) {
+                id = getValue(buf, parse[i * 4 + 3], parse[i * 4 + 4], false);
             }
         }
         if (id != null) {
-            return null;
+            return ClientApi.incorrectVisit;
         }
 
         if (
                 location == null &&
-                user == null &&
-                visited_at == null &&
-                mark == null) {
-            return null;
+                        user == null &&
+                        visited_at == null &&
+                        mark == null) {
+            return ClientApi.incorrectVisit;
         }
         int _location = -1;
         if (location != null && isNumeric(location)) {
             _location = Integer.valueOf(location);
         } else {
             if (location != null)
-                return null;
+                return ClientApi.incorrectVisit;
         }
         int _user = -1;
         if (user != null && isNumeric(user)) {
             _user = Integer.valueOf(user);
         } else {
             if (user != null)
-                return null;
+                return ClientApi.incorrectVisit;
         }
-        Long _visited_at=null;
+        Long _visited_at = null;
         if (visited_at != null && isNumeric(visited_at)) {
             _visited_at = Long.valueOf(visited_at);
         } else {
             if (visited_at != null)
-                return null;
+                return ClientApi.incorrectVisit;
         }
         byte _mark = -1;
         if (mark != null && isNumeric(mark)) {
             _mark = Byte.valueOf(mark);
             if (_mark < 0 || _mark > 5) {
-                return null;
+                return ClientApi.incorrectVisit;
             }
         } else {
             if (mark != null)
-                return null;
+                return ClientApi.incorrectVisit;
         }
         return new Visit(0, _location, _user, _visited_at, _mark);
     }
@@ -326,6 +326,9 @@ public class StreamBufParser {
         if (parse[0] == -1) {
             return null;
         }
+        if (parse[0] == -2) {
+            return ClientApi.waitLocation;
+        }
         String id = null;
         String place = null;
         String country = null;
@@ -334,15 +337,15 @@ public class StreamBufParser {
 
         for (int i = 0; i < parse[0]; i++) {
             if (place == null && arraysEquals(buf, place_bytes, parse[i * 4 + 1], parse[i * 4 + 2])) {
-                place = getValue(buf,parse[i * 4 + 3],parse[i * 4 + 4],true);
+                place = getValue(buf, parse[i * 4 + 3], parse[i * 4 + 4], true);
             } else if (country == null && arraysEquals(buf, country_bytes, parse[i * 4 + 1], parse[i * 4 + 2])) {
-                country = getValue(buf,parse[i * 4 + 3],parse[i * 4 + 4],true);
+                country = getValue(buf, parse[i * 4 + 3], parse[i * 4 + 4], true);
             } else if (city == null && arraysEquals(buf, city_bytes, parse[i * 4 + 1], parse[i * 4 + 2])) {
-                city = getValue(buf,parse[i * 4 + 3],parse[i * 4 + 4],true);
+                city = getValue(buf, parse[i * 4 + 3], parse[i * 4 + 4], true);
             } else if (distance == null && arraysEquals(buf, distance_bytes, parse[i * 4 + 1], parse[i * 4 + 2])) {
-                distance = getValue(buf,parse[i * 4 + 3],parse[i * 4 + 4],false);
+                distance = getValue(buf, parse[i * 4 + 3], parse[i * 4 + 4], false);
             } else if (id == null && arraysEquals(buf, id_bytes, parse[i * 4 + 1], parse[i * 4 + 2])) {
-                id = getValue(buf,parse[i * 4 + 3],parse[i * 4 + 4],false);
+                id = getValue(buf, parse[i * 4 + 3], parse[i * 4 + 4], false);
             }
         }
         if (id == null ||
@@ -350,48 +353,51 @@ public class StreamBufParser {
                 country == null ||
                 city == null ||
                 distance == null) {
-            return null;
+            return ClientApi.incorrectLocation;
         }
         int _id;
         if (isNumeric(id)) {
             _id = Integer.valueOf(id);
         } else {
-            return null;
+            return ClientApi.incorrectLocation;
         }
         if (country.length() > 50) {
-            return null;
+            return ClientApi.incorrectLocation;
         }
         if (city.length() > 50) {
-            return null;
+            return ClientApi.incorrectLocation;
         }
         int _distance;
         if (isNumeric(distance)) {
             _distance = Integer.valueOf(distance);
         } else {
-            return null;
+            return ClientApi.incorrectLocation;
         }
         return new Location(_id, place, country, city, _distance);
     }
-    private static String getValue(ByteBuf buf, short from, short length,boolean decode){
-        if(length==-1){
+
+    private static String getValue(ByteBuf buf, short from, short length, boolean decode) {
+        if (length == -1) {
             return null;
         }
         byte[] value = new byte[length];
         buf.getBytes(from, value);
-        if(decode) {
-                return org.apache.commons.text.StringEscapeUtils.unescapeJava(new String(value));
+        if (decode) {
+            return org.apache.commons.text.StringEscapeUtils.unescapeJava(new String(value));
             //     return decodeComponent(new String(value, StandardCharsets.UTF_8), StandardCharsets.UTF_8);
-        }else {
+        } else {
             return new String(value, StandardCharsets.UTF_8);
         }
     }
 
-    
 
     public static Location toUpdateLocation(ByteBuf buf) {
         short[] parse = parse(buf, 33, buf.readerIndex());
         if (parse[0] == -1) {
             return null;
+        }
+        if (parse[0] == -2) {
+            return ClientApi.waitLocation;
         }
         String id = null;
         String place = null;
@@ -401,53 +407,53 @@ public class StreamBufParser {
 
         for (int i = 0; i < parse[0]; i++) {
             if (place == null && arraysEquals(buf, place_bytes, parse[i * 4 + 1], parse[i * 4 + 2])) {
-                place = getValue(buf,parse[i * 4 + 3],parse[i * 4 + 4],true);
-                if(place==null){
-                    return null;
+                place = getValue(buf, parse[i * 4 + 3], parse[i * 4 + 4], true);
+                if (place == null) {
+                    return ClientApi.incorrectLocation;
                 }
             } else if (country == null && arraysEquals(buf, country_bytes, parse[i * 4 + 1], parse[i * 4 + 2])) {
-                country = getValue(buf,parse[i * 4 + 3],parse[i * 4 + 4],true);
-                if(country==null){
-                    return null;
+                country = getValue(buf, parse[i * 4 + 3], parse[i * 4 + 4], true);
+                if (country == null) {
+                    return ClientApi.incorrectLocation;
                 }
             } else if (city == null && arraysEquals(buf, city_bytes, parse[i * 4 + 1], parse[i * 4 + 2])) {
-                city = getValue(buf,parse[i * 4 + 3],parse[i * 4 + 4],true);
-                if(city==null){
-                    return null;
+                city = getValue(buf, parse[i * 4 + 3], parse[i * 4 + 4], true);
+                if (city == null) {
+                    return ClientApi.incorrectLocation;
                 }
             } else if (distance == null && arraysEquals(buf, distance_bytes, parse[i * 4 + 1], parse[i * 4 + 2])) {
-                distance = getValue(buf,parse[i * 4 + 3],parse[i * 4 + 4],false);
-                if(distance==null){
-                    return null;
+                distance = getValue(buf, parse[i * 4 + 3], parse[i * 4 + 4], false);
+                if (distance == null) {
+                    return ClientApi.incorrectLocation;
                 }
             } else if (id == null && arraysEquals(buf, id_bytes, parse[i * 4 + 1], parse[i * 4 + 2])) {
-                id = getValue(buf,parse[i * 4 + 3],parse[i * 4 + 4],false);
+                id = getValue(buf, parse[i * 4 + 3], parse[i * 4 + 4], false);
             }
         }
         if (id != null) {
-            return null;
+            return ClientApi.incorrectLocation;
         }
 
         if (
                 place == null &&
-                country == null &&
-                city == null &&
-                distance == null) {
-            return null;
+                        country == null &&
+                        city == null &&
+                        distance == null) {
+            return ClientApi.incorrectLocation;
         }
 
         if (country != null && country.length() > 50) {
-            return null;
+            return ClientApi.incorrectLocation;
         }
         if (city != null && city.length() > 50) {
-            return null;
+            return ClientApi.incorrectLocation;
         }
         int _distance = -1;
         if (distance != null && isNumeric(distance)) {
             _distance = Integer.valueOf(distance);
         } else {
             if (distance != null) {
-                return null;
+                return ClientApi.incorrectLocation;
             }
         }
         return new Location(0, place, country, city, _distance);
@@ -459,6 +465,9 @@ public class StreamBufParser {
         if (parse[0] == -1) {
             return null;
         }
+        if (parse[0] == -2) {
+            return ClientApi.waitUser;
+        }
         String id = null;
         String email = null;
         String first_name = null;
@@ -468,17 +477,17 @@ public class StreamBufParser {
 
         for (int i = 0; i < parse[0]; i++) {
             if (first_name == null && arraysEquals(buf, first_name_bytes, parse[i * 4 + 1], parse[i * 4 + 2])) {
-                first_name = getValue(buf,parse[i * 4 + 3],parse[i * 4 + 4],true);
+                first_name = getValue(buf, parse[i * 4 + 3], parse[i * 4 + 4], true);
             } else if (last_name == null && arraysEquals(buf, last_name_bytes, parse[i * 4 + 1], parse[i * 4 + 2])) {
-                last_name = getValue(buf,parse[i * 4 + 3],parse[i * 4 + 4],true);
+                last_name = getValue(buf, parse[i * 4 + 3], parse[i * 4 + 4], true);
             } else if (email == null && arraysEquals(buf, email_bytes, parse[i * 4 + 1], parse[i * 4 + 2])) {
-                email = getValue(buf,parse[i * 4 + 3],parse[i * 4 + 4],true);
+                email = getValue(buf, parse[i * 4 + 3], parse[i * 4 + 4], true);
             } else if (gender == null && arraysEquals(buf, gender_bytes, parse[i * 4 + 1], parse[i * 4 + 2])) {
-                gender = getValue(buf,parse[i * 4 + 3],parse[i * 4 + 4],true);
+                gender = getValue(buf, parse[i * 4 + 3], parse[i * 4 + 4], true);
             } else if (birth_date == null && arraysEquals(buf, birth_date_bytes, parse[i * 4 + 1], parse[i * 4 + 2])) {
-                birth_date = getValue(buf,parse[i * 4 + 3],parse[i * 4 + 4],false);
+                birth_date = getValue(buf, parse[i * 4 + 3], parse[i * 4 + 4], false);
             } else if (id == null && arraysEquals(buf, id_bytes, parse[i * 4 + 1], parse[i * 4 + 2])) {
-                id = getValue(buf,parse[i * 4 + 3],parse[i * 4 + 4],false);
+                id = getValue(buf, parse[i * 4 + 3], parse[i * 4 + 4], false);
             }
         }
         if (id == null ||
@@ -487,37 +496,37 @@ public class StreamBufParser {
                 last_name == null ||
                 gender == null ||
                 birth_date == null) {
-            return null;
+            return ClientApi.incorrectUser;
         }
         int _id;
         if (isNumeric(id)) {
             _id = Integer.valueOf(id);
             if (_id <= 0) {
-                return null;
+                return ClientApi.incorrectUser;
             }
         } else {
-            return null;
+            return ClientApi.incorrectUser;
         }
         if (email.length() >= 100) {
-            return null;
+            return ClientApi.incorrectUser;
         }
         if (first_name.length() > 50) {
-            return null;
+            return ClientApi.incorrectUser;
         }
         if (last_name.length() > 50) {
-            return null;
+            return ClientApi.incorrectUser;
         }
         boolean _gender;
         if ("f".equals(gender) || "m".equals(gender)) {
             _gender = "m".equals(gender);
         } else {
-            return null;
+            return ClientApi.incorrectUser;
         }
         long _birth_date;
         if (isNumeric(birth_date)) {
             _birth_date = Long.valueOf(birth_date);
         } else {
-            return null;
+            return ClientApi.incorrectUser;
         }
 
         return new User(_id, email, first_name, last_name, _gender, _birth_date);
@@ -528,6 +537,9 @@ public class StreamBufParser {
         if (parse[0] == -1) {
             return null;
         }
+        if (parse[0] == -2) {
+            return ClientApi.waitUser;
+        }
         String id = null;
         String email = null;
         String first_name = null;
@@ -537,62 +549,62 @@ public class StreamBufParser {
 
         for (int i = 0; i < parse[0]; i++) {
             if (first_name == null && arraysEquals(buf, first_name_bytes, parse[i * 4 + 1], parse[i * 4 + 2])) {
-                first_name = getValue(buf,parse[i * 4 + 3],parse[i * 4 + 4],true);
-                if(first_name==null){
-                    return null;
+                first_name = getValue(buf, parse[i * 4 + 3], parse[i * 4 + 4], true);
+                if (first_name == null) {
+                    return ClientApi.incorrectUser;
                 }
             } else if (last_name == null && arraysEquals(buf, last_name_bytes, parse[i * 4 + 1], parse[i * 4 + 2])) {
-                last_name = getValue(buf,parse[i * 4 + 3],parse[i * 4 + 4],true);
-                if(last_name==null){
-                    return null;
+                last_name = getValue(buf, parse[i * 4 + 3], parse[i * 4 + 4], true);
+                if (last_name == null) {
+                    return ClientApi.incorrectUser;
                 }
             } else if (email == null && arraysEquals(buf, email_bytes, parse[i * 4 + 1], parse[i * 4 + 2])) {
-                email = getValue(buf,parse[i * 4 + 3],parse[i * 4 + 4],true);
-                if(email==null){
-                    return null;
+                email = getValue(buf, parse[i * 4 + 3], parse[i * 4 + 4], true);
+                if (email == null) {
+                    return ClientApi.incorrectUser;
                 }
             } else if (gender == null && arraysEquals(buf, gender_bytes, parse[i * 4 + 1], parse[i * 4 + 2])) {
-                gender = getValue(buf,parse[i * 4 + 3],parse[i * 4 + 4],true);
-                if(gender==null){
-                    return null;
+                gender = getValue(buf, parse[i * 4 + 3], parse[i * 4 + 4], true);
+                if (gender == null) {
+                    return ClientApi.incorrectUser;
                 }
             } else if (birth_date == null && arraysEquals(buf, birth_date_bytes, parse[i * 4 + 1], parse[i * 4 + 2])) {
-                birth_date = getValue(buf,parse[i * 4 + 3],parse[i * 4 + 4],false);
-                if(birth_date==null){
-                    return null;
+                birth_date = getValue(buf, parse[i * 4 + 3], parse[i * 4 + 4], false);
+                if (birth_date == null) {
+                    return ClientApi.incorrectUser;
                 }
             } else if (id == null && arraysEquals(buf, id_bytes, parse[i * 4 + 1], parse[i * 4 + 2])) {
-                id = getValue(buf,parse[i * 4 + 3],parse[i * 4 + 4],false);
+                id = getValue(buf, parse[i * 4 + 3], parse[i * 4 + 4], false);
             }
         }
         if (id != null) {
-            return null;
+            return ClientApi.incorrectUser;
         }
         if (
                 email == null &&
-                first_name == null &&
-                last_name == null &&
-                gender == null &&
-                birth_date == null) {
-            return null;
+                        first_name == null &&
+                        last_name == null &&
+                        gender == null &&
+                        birth_date == null) {
+            return ClientApi.incorrectUser;
         }
 
 
         if (email != null && email.length() > 100) {
-            return null;
+            return ClientApi.incorrectUser;
         }
         if (first_name != null && first_name.length() > 50) {
-            return null;
+            return ClientApi.incorrectUser;
         }
         if (last_name != null && last_name.length() > 50) {
-            return null;
+            return ClientApi.incorrectUser;
         }
         Boolean _gender = null;
         if (gender != null && ("f".equals(gender) || "m".equals(gender))) {
             _gender = "m".equals(gender);
         } else {
             if (gender != null) {
-                return null;
+                return ClientApi.incorrectUser;
             }
         }
         Long _birth_date = null;
@@ -600,7 +612,7 @@ public class StreamBufParser {
             _birth_date = Long.valueOf(birth_date);
         } else {
             if (birth_date != null) {
-                return null;
+                return ClientApi.incorrectUser;
             }
         }
         return new User(0, email, first_name, last_name, _gender, _birth_date);

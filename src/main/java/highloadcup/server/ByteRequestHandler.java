@@ -1,35 +1,25 @@
 package highloadcup.server;
 
-import highloadcup.server.RequestParser;
 import highloadcup.service.ClientApi;
 import highloadcup.service.DataHolder;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.handler.codec.ByteToMessageDecoder;
-import io.netty.handler.codec.PrematureChannelClosureException;
-import io.netty.handler.codec.http.HttpObjectDecoder;
-import io.netty.handler.codec.http.HttpUtil;
-import io.netty.handler.codec.http.LastHttpContent;
+import io.netty.channel.socket.ChannelInputShutdownEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Created by d.asadullin on 31.08.2017.
- */
-public class TestRequestHandler extends ByteToMessageDecoder {
+public class ByteRequestHandler extends ChannelInboundHandlerAdapter {
     private static class ByteBufPool {
-        static LinkedBlockingQueue<ByteBuf> queue = new LinkedBlockingQueue<>(1);
+        static LinkedBlockingQueue<ByteBuf> queue = new LinkedBlockingQueue<>(2100);
 
         static {
-            for (int i = 0; i < 1; i++) {
+            for (int i = 0; i < 2100; i++) {
                 queue.add(Unpooled.buffer(1024 * 90, 1024 * 90));
             }
         }
@@ -105,7 +95,7 @@ public class TestRequestHandler extends ByteToMessageDecoder {
 
     public ClientApi handler;
 
-    public TestRequestHandler(ClientApi handler) {
+    public ByteRequestHandler(ClientApi handler) {
         this.handler = handler;
     }
 
@@ -115,84 +105,91 @@ public class TestRequestHandler extends ByteToMessageDecoder {
 //        ctx.flush();
 //    }
     //ByteBuf copyBuf = Unpooled.buffer(1024 * 1024 * 10);
-    ByteBuf copyBuf =null;
-    private long end = 0;
+    ByteBuf copyBuf = null;
     private volatile boolean respSended = false;
     private volatile boolean lastSended = false;
 
-//    @Override
-//    protected void handlerRemoved0(ChannelHandlerContext ctx) throws Exception {
-//        if (copyBuf != null) {
-//            ctx.write(default400Alive.duplicate().retain());
-//            ctx.fireChannelReadComplete();
-//            ctx.flush();
-//        }
-    //   }
+    @Override
+    public final void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+        lastSended=true;
+        close(ctx);
+        ctx.fireChannelReadComplete();
+    }
 
     @Override
-    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        lastSended=true;
+        close(ctx);
+        super.channelInactive(ctx);
+    }
+
+    @Override
+    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+        if (evt instanceof ChannelInputShutdownEvent) {
+            lastSended=true;
+            // The decodeLast method is invoked when a channelInactive event is encountered.
+            // This method is responsible for ending requests in some situations and must be called
+            // when the input has been shutdown.
+            close(ctx);
+        }
+        super.userEventTriggered(ctx, evt);
+    }
+
+
+    @Override
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        while (((ByteBuf) msg).isReadable()) {
+            ByteBuf response = process((ByteBuf) msg);
+            if (response != null) {
+                respSended = true;
+                ctx.write(response);
+                break;
+            } else {
+                if (ctx.isRemoved()) {
+                    break;
+                }
+            }
+        }
+        ((ByteBuf) msg).release();
+
+    }
+
+    private void close(ChannelHandlerContext ctx) {
         try {
             if (respSended) {
             } else {
-                if(!lastSended) {
+                if (!lastSended) {
                     ByteBuf response = default400Alive.duplicate().retain();
                     ctx.write(response);
                 }
             }
-            if(copyBuf!=null) {
+            if (copyBuf != null) {
                 ByteBufPool.releaseBuf(copyBuf);
-                copyBuf=null;
+                copyBuf = null;
             }
         } catch (Exception ex) {
             logger.error("", ex);
         } finally {
             respSended = false;
         }
+    }
+
+    @Override
+    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+        close(ctx);
         super.channelReadComplete(ctx);
     }
 
-
-    @Override
-    protected void decodeLast(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
-        super.decodeLast(ctx, in, out);
-        lastSended=true;
-        try {
-            if (respSended) {
-            } else {
-                ByteBuf response = default400Alive.duplicate().retain();
-                ctx.write(response);
-            }
-            if(copyBuf!=null) {
-                ByteBufPool.releaseBuf(copyBuf);
-                copyBuf=null;
-            }
-        } catch (Exception ex) {
-            logger.error("", ex);
-        } finally {
-            respSended = false;
-        }
-    }
-
-
-    @Override
-    protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) throws Exception {
-        ByteBuf response = process(msg, out);
-        if (response != null) {
-            respSended = true;
-            out.add(response);
-        }
-    }
-
-    private ByteBuf process(ByteBuf msg, List<Object> out) {
+    private ByteBuf process(ByteBuf msg) {
         if (respSended) {
             while (msg.isReadable()) {
                 msg.readByte();
             }
         }
-        lastSended=false;
+        lastSended = false;
         if (copyBuf == null) {
             try {
-                copyBuf=ByteBufPool.getByteBuf();
+                copyBuf = ByteBufPool.getByteBuf();
             } catch (InterruptedException e) {
                 //
             }
@@ -271,9 +268,10 @@ public class TestRequestHandler extends ByteToMessageDecoder {
 
         ctx.close();
         respSended = false;
-        if(copyBuf!=null) {
+        if (copyBuf != null) {
             ByteBufPool.releaseBuf(copyBuf);
-            copyBuf=null;
+            copyBuf = null;
         }
     }
+
 }

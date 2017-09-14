@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -23,8 +24,8 @@ public class Sender {
     private AtomicBoolean working=new AtomicBoolean(true);
     public Sender(){
         config = new AsyncHttpClientConfig.Builder().
-                setConnectTimeout(3000).
-                setRequestTimeout(3000)
+                setConnectTimeout(3000000).
+                setRequestTimeout(3000000)
                 .build();
         httpClient = new AsyncHttpClient(config);
     }
@@ -49,10 +50,11 @@ public class Sender {
                 boundRequestBuilder.addHeader("Connection", "keep-alive");
                 Future<Response> future = boundRequestBuilder.execute();
                 com.ning.http.client.Response response = future.get();
-                return response.getResponseBody();
+
+                return response.getStatusCode()+"/"+response.getResponseBody()+"/"+response.getHeaders();
             } catch (Exception ex) {
                 long end=System.currentTimeMillis();
-            //    logger.error("execution time: "+Long.toString(end-start), ex.getMessage());
+                logger.error("execution time: "+Long.toString(end-start), ex.getMessage());
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
@@ -69,10 +71,10 @@ public class Sender {
         AsyncHttpClient.BoundRequestBuilder boundRequestBuilder;
         boundRequestBuilder = httpClient.preparePost(url);
         boundRequestBuilder.addHeader("Content-Type", "application/json; charset=utf-8");
-        boundRequestBuilder.addHeader("Connection","close");
+        boundRequestBuilder.addHeader("Connection","keep-alive");
         boundRequestBuilder.setBody(request);
         Future<Response> future = boundRequestBuilder.execute();
         com.ning.http.client.Response response = future.get();
-        return response.getResponseBody();
+        return response.getResponseBody(StandardCharsets.UTF_8.name());
     }
 }

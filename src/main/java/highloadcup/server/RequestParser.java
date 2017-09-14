@@ -42,6 +42,8 @@ public class RequestParser {
 //    }
 //
     public static byte[] contentLength = "ength: 0".getBytes();
+    public static byte[] contentLength1 = "ength:0".getBytes();
+    public static byte[] contentLength2 = "ength:".getBytes();
     public static byte[] bodySeparator = "\r\n\r\n".getBytes();
 
     private static int findBytes(ByteBuf data, byte[] array) {
@@ -51,8 +53,8 @@ public class RequestParser {
         while (true) {
             // ((AbstractByteBuf)data)._getByte();
 
-            while (data.capacity() > cursor && (b = data.getByte(cursor++)) != array[idx]) ;
-            if (data.capacity() - cursor < array.length) {
+            while (data.writerIndex() > cursor && (b = data.getByte(cursor++)) != array[idx]) ;
+            if (data.writerIndex() - cursor < array.length) {
                 return -1;
             }
             for (idx = 1; idx < array.length; idx++) {
@@ -71,12 +73,13 @@ public class RequestParser {
     private static byte eol = '\n';
     private static int httpSize = " HTTP/1.1\n".length();
 
-    private static void printRequest(ByteBuf data) {
+    public static void printRequest(ByteBuf data) {
         int readerIdx = data.readerIndex();
         data.readerIndex(0);
-        logger.info(data.toString(StandardCharsets.UTF_8));
+        logger.info(Thread.currentThread().getName()+"/"+data.toString(StandardCharsets.UTF_8));
         data.readerIndex(readerIdx);
     }
+
 
     public static ClientApi.Response parse(ClientApi api, ByteBuf data) {
 //        data= Unpooled.wrappedBuffer(("POST /visits/4900?query_id=1332 HTTP/1.1\n" +
@@ -88,25 +91,15 @@ public class RequestParser {
 //                "Content-Type: application/json").getBytes());
 
         try {
+           // printRequest(data);
+            data.readerIndex(0);
             boolean isPost = false;
             boolean isCorrect = false;
-            int i=0;
             if (data.readableBytes() < 5) {
-                // logger.info("incorrect request");
-                // printRequest(data);
-//                while (i++<500) {
-//                    Thread.sleep(10);
-//                    if (data.readableBytes() > 5) {
-//                       break;
-//                    }
-//                }
-//                if (data.readableBytes() < 5) {
-//                    return new ClientApi.Response(DataHolder.INCORRECT_RESP);
-//                }
                 return new ClientApi.Response(DataHolder.WAIT);
             }
             byte[] type = new byte[4];
-            data.readBytes(type);
+            data.getBytes(0,type);
             if (type[0] == 'G' &&
                     type[1] == 'E' &&
                     type[2] == 'T') {
@@ -118,7 +111,6 @@ public class RequestParser {
                     type[3] == 'T') {
                 isCorrect = true;
                 isPost = true;
-                data.skipBytes(1);
             }
             if (!isCorrect) {
                 // logger.info("incorrect type");
@@ -143,12 +135,17 @@ public class RequestParser {
 //                    //return new ClientApi.Response(DataHolder.INCORRECT_RESP);
 //                }
             }
-            if (isPost && findBytes(data, contentLength) != -1) {
+         //   printRequest(data);
+            if (isPost && (findBytes(data, contentLength) != -1|| findBytes(data, contentLength1) != -1)) {
                 return new ClientApi.Response(DataHolder.INCORRECT_RESP);
             }
 
-            byte[] request1 = new byte[fistLineEnd - httpSize];
-            data.readBytes(request1);
+            byte[] request1= new byte[fistLineEnd - httpSize-(isPost?5:4)];
+            if(isPost) {
+                data.getBytes(5,request1);
+            }else {
+                data.getBytes(4,request1);
+            }
             String uri = new String(request1);
             boolean debug = false;
             if (uri.contains("/locations/5893")) {
@@ -173,9 +170,12 @@ public class RequestParser {
             }
 
             int bodySep = findBytes(data, bodySeparator);
-            data.writerIndex(data.capacity());
+          //  data.writerIndex(data.capacity());
             if (bodySep != -1) {
                 data.readerIndex(bodySep);
+//                if(isPost&&findBytes(data, contentLength2) == -1){
+//                    return new ClientApi.Response(DataHolder.INCORRECT_RESP);
+//                }
             }
 //        byte[] body = new byte[data.readableBytes()];
 //        data.readBytes(body);

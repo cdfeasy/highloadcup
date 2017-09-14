@@ -4,8 +4,6 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.*;
-import io.netty.handler.stream.ChunkedWriteHandler;
-import io.netty.handler.traffic.ChannelTrafficShapingHandler;
 
 /**
  * Created by dmitry on 20.08.2017.
@@ -27,7 +25,8 @@ public class NewHttpServerInit extends ChannelInitializer<SocketChannel> {
       //  new HttpRequestDecoder();
     //    p.addLast(new HttpRequestDecoder());
        // p.addLast(new HttpResponseEncoder());
-        p.addLast(new TestRequestHandler(api));
+        p.addLast(new ByteRequestHandler(api));
+        p.addLast(new WrapperHandler());
         new HttpRequestDecoder();
         new HttpObjectAggregator(Integer.MAX_VALUE);
        // p.addLast(new HttpObjectAggregator(Integer.MAX_VALUE));

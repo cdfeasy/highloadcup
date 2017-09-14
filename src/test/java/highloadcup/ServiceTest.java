@@ -43,8 +43,17 @@ public class ServiceTest {
         server.start();
         AtomicInteger cnt=new AtomicInteger();
         AtomicInteger success=new AtomicInteger();
-        HttpClient client=new HttpClient(8080,cnt,success);
+     //   HttpClient client=new HttpClient(8080,cnt,success);
+        Sender client=new Sender();
         // . /locations/114/avg?toDate=1462838400&toAge=52&fromAge=7
+        String errUsr="{\n" +
+                "  \"first_name\": \"Константин\",\n" +
+                "  \"last_name\": \"Стыкатолан\",\n" +
+                "  \"gender\": \"m\",\n" +
+                "  \"id\": 1002481,\n" +
+                "  \"birth_date\": -848448000,\n" +
+                "  \"email\": \"nidoloviflocbe@gmail.com\"\n" +
+                "}";
         String str = "{\n" +
                 "  \"first_name\": \"Данила\",\n" +
                 "  \"last_name\": \"Стыкушувич\",\n" +
@@ -77,20 +86,38 @@ public class ServiceTest {
 //        System.out.println(client.get("http://127.0.0.1:8080/locations/112/avg?toDate=1215043200&fromDate=1497052800&toAge=54&fromAge=21&gender=m"));
 //        System.out.println(client.get("http://127.0.0.1:8080/users/100174"));
 //        System.out.println(client.get("http://127.0.0.1:8080/locations/112/avg?fromAge=10&country=Италия"));
-        client.post("http://127.0.0.1:8080/users/new", str);
-        client.post("http://127.0.0.1:8080/users/new", str1);
-        client.post("http://127.0.0.1:8080/locations/new", loca11);
-        client.post("http://127.0.0.1:8080/locations/new", loca12);
-        client.post("http://127.0.0.1:8080/visits/new", visit1);
-        client.post("http://127.0.0.1:8080/visits/new", visit1_5);
+        System.out.println(client.get("http://127.0.0.1:8080/users/broken"));
+        System.out.println(client.post("http://127.0.0.1:8080/users/new?id=-1", errUsr));
+        System.out.println(client.get("http://127.0.0.1:8080/users/1002481?id=7"));
+     //   Thread.sleep(100);
+      //  Thread.sleep(100);
+        System.out.println(client.post("http://127.0.0.1:8080/users/new?id=1", str));
+      //  Thread.sleep(100);
+        System.out.println(client.get("http://127.0.0.1:8080/users/100174?id=7"));
+      //  Thread.sleep(100);
+        System.out.println(client.post("http://127.0.0.1:8080/users/new?id=2", str1));
+     //   Thread.sleep(100);
+        System.out.println(client.post("http://127.0.0.1:8080/locations/new?id=3", loca11));
+    //    Thread.sleep(100);
+        System.out.println(client.post("http://127.0.0.1:8080/locations/new?id=4", loca12));
+      //  Thread.sleep(100);
+        System.out.println(client.post("http://127.0.0.1:8080/visits/new?id=5", visit1));
+      //  Thread.sleep(100);
+        System.out.println(client.post("http://127.0.0.1:8080/visits/new?id=6", visit1_5));
+      //  Thread.sleep(100);
 
-        System.out.println(client.get("http://127.0.0.1:8080/users/100174"));
-        System.out.println(client.get("http://127.0.0.1:8080/locations/100001/avg"));
-        System.out.println(client.get("http://127.0.0.1:8080/locations/100002/avg"));
-        client.post("http://127.0.0.1:8080/visits/100001", visit2);
-        System.out.println(client.get("http://127.0.0.1:8080/locations/100001/avg"));
-        System.out.println(client.get("http://127.0.0.1:8080/locations/100002/avg"));
-        Thread.sleep(1000);
+        System.out.println(client.get("http://127.0.0.1:8080/users/100174?id=7"));
+      //  Thread.sleep(100);
+        System.out.println(client.get("http://127.0.0.1:8080/locations/100001/avg?id=8"));
+      //  Thread.sleep(100);
+        System.out.println(client.get("http://127.0.0.1:8080/locations/100002/avg?id=9"));
+      //  Thread.sleep(100);
+        System.out.println(client.post("http://127.0.0.1:8080/visits/100001?id=10", visit2));
+      //  Thread.sleep(100);
+        System.out.println(client.get("http://127.0.0.1:8080/locations/100001/avg?id=11"));
+      //  Thread.sleep(100);
+        System.out.println(client.get("http://127.0.0.1:8080/locations/100002/avg?id=12"));
+      //  Thread.sleep(1000);
         client.close();
         //  Thread.sleep(1000000);
      //   System.out.println("bla"+"/"+cnt.get()+"/"+success.get());
@@ -145,14 +172,19 @@ public class ServiceTest {
 //        Any deserialize = JsonIterator.deserialize(_user);
 //        System.out.println(deserialize.as(User.class));
 
-        ByteBuffer sb= ByteBuffer.allocate(100000);
-        sb.put("ololo".getBytes());
-        sb.put("ololo".getBytes());
-        sb.put("alala".getBytes());
-        sb.flip();
-        byte[] bytes=new byte[sb.remaining()];
-        sb.get(bytes);
-        System.out.println(""+new String(bytes));
+        ByteBuf sb= Unpooled.buffer(1024*1024,1024*1024);
+        sb.writeBytes("ololo".getBytes());
+        sb.writeBytes("olol1".getBytes());
+        sb.writeBytes("alala".getBytes());
+        byte[] bb=new byte[10];
+        sb.getBytes(4,bb);
+        System.out.println(""+new String(bb));
+        sb.clear();
+        sb.writeBytes("eeee1".getBytes());
+        byte[] bb1=new byte[sb.readableBytes()];
+
+        sb.getBytes(0,bb1);
+        System.out.println(""+new String(bb1));
 
 
 

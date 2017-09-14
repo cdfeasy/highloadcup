@@ -17,6 +17,23 @@ public class ClientApi {
     Logger logger = LoggerFactory.getLogger(ClientApi.class);
     private DataHolder dataHolder;
 
+    public static Visit incorrectVisit=new Visit();
+    public static User incorrectUser=new User();
+    public static Location incorrectLocation=new Location();
+    public static Visit waitVisit=new Visit();
+    public static User waitUser=new User();
+    public static Location waitLocation=new Location();
+    static {
+        incorrectVisit.setId(-1);
+        incorrectUser.setId(-1);
+        incorrectLocation.setId(-1);
+        waitVisit.setId(-2);
+        waitUser.setId(-2);
+        waitLocation.setId(-2);
+    }
+
+
+
     public DataHolder getDataHolder() {
         return dataHolder;
     }
@@ -215,7 +232,13 @@ public class ClientApi {
             Integer _id = Integer.valueOf(id);
             User _user = StreamBufParser.toUpdateUser(user);
             if (_user == null) {
+                return new Response(DataHolder.WAIT);
+            }
+            if(_user.getId()==-1){
                 return new Response(DataHolder.INCORRECT_RESP);
+            }
+            if(_user.getId()==-2){
+                return new Response(DataHolder.WAIT);
             }
             if(debug){
                // logger.info("Debug user:"+_user.toString());
@@ -232,7 +255,13 @@ public class ClientApi {
             Integer _id = Integer.valueOf(id);
             Visit _visit = StreamBufParser.toUpdateVisit(visit);
             if (_visit == null) {
+                return new Response(DataHolder.WAIT);
+            }
+            if(_visit.getId()==-1){
                 return new Response(DataHolder.INCORRECT_RESP);
+            }
+            if(_visit.getId()==-2){
+                return new Response(DataHolder.WAIT);
             }
             if(debug){
               //  logger.info("Debug visit:"+_visit.toString());
@@ -249,7 +278,13 @@ public class ClientApi {
             Integer _id = Integer.valueOf(id);
             Location _location = StreamBufParser.toUpdateLocation(location);
             if (_location == null) {
+                return new Response(DataHolder.WAIT);
+            }
+            if(_location.getId()==-1){
                 return new Response(DataHolder.INCORRECT_RESP);
+            }
+            if(_location.getId()==-2){
+                return new Response(DataHolder.WAIT);
             }
             if(debug){
               //  logger.info("Debug location:"+_location.toString());
@@ -264,7 +299,13 @@ public class ClientApi {
     public Response addUser(ByteBuf user,boolean debug) {
         User _user = StreamBufParser.toAddUser(user);
         if (_user == null) {
+            return new Response(DataHolder.WAIT);
+        }
+        if(_user.getId()==-1){
             return new Response(DataHolder.INCORRECT_RESP);
+        }
+        if(_user.getId()==-2){
+            return new Response(DataHolder.WAIT);
         }
         Integer status = dataHolder.addUser(_user);
         return new Response(status);
@@ -273,7 +314,13 @@ public class ClientApi {
     public Response addVisit(ByteBuf visit,boolean debug) {
         Visit _visit = StreamBufParser.toAddVisit(visit);
         if (_visit == null) {
+            return new Response(DataHolder.WAIT);
+        }
+        if(_visit.getId()==-1){
             return new Response(DataHolder.INCORRECT_RESP);
+        }
+        if(_visit.getId()==-2){
+            return new Response(DataHolder.WAIT);
         }
         Integer status = dataHolder.addVisit(_visit);
         return new Response(status);
@@ -282,7 +329,13 @@ public class ClientApi {
     public Response addLocation(ByteBuf location,boolean debug) {
         Location _location = StreamBufParser.toAddLocation(location);
         if (_location == null) {
+            return new Response(DataHolder.WAIT);
+        }
+        if(_location.getId()==-1){
             return new Response(DataHolder.INCORRECT_RESP);
+        }
+        if(_location.getId()==-2){
+            return new Response(DataHolder.WAIT);
         }
         Integer status = dataHolder.addLocation(_location);
         return new Response(status);
