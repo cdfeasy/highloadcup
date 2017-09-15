@@ -261,7 +261,7 @@ public class ByteRequestHandler extends ChannelInboundHandlerAdapter {
         logger.error("cannot process", cause);
         try {
             ctx.write(default400Alive.duplicate().retain());
-            ctx.flush();
+           // ctx.flush();
         } catch (Exception ex) {
             //
         }
