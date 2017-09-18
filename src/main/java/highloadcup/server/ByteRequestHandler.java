@@ -50,41 +50,41 @@ public class ByteRequestHandler extends ChannelInboundHandlerAdapter {
                 "content-length: 2\r\n" +
                 "connection: close\r\n" +
                 "\r\n" +
-                "{}").getBytes());
+                "{}\r\n").getBytes());
 
         defaultOkAlive = Unpooled.wrappedBuffer(("HTTP/1.1 200 OK\r\n" +
                 "content-type: application/json; charset=utf-\r\n" +
                 "content-length: 2\r\n" +
                 "connection: keep-alive\r\n" +
                 "\r\n" +
-                "{}").getBytes());
+                "{}\r\n").getBytes());
 
         default400Close = Unpooled.wrappedBuffer(("HTTP/1.1 400 OK\r\n" +
                 "content-type: application/json; charset=utf-8\r\n" +
                 "content-length: 2\r\n" +
                 "connection: close\r\n" +
                 "\r\n" +
-                "{}").getBytes());
+                "{}\r\n").getBytes());
 
         default400Alive = Unpooled.wrappedBuffer(("HTTP/1.1 400 OK\r\n" +
                 "content-type: application/json; charset=utf-8\r\n" +
                 "content-length: 2\r\n" +
                 "connection: keep-alive\r\n" +
                 "\r\n" +
-                "{}").getBytes());
+                "{}\r\n").getBytes());
 
         default404Close = Unpooled.wrappedBuffer(("HTTP/1.1 404 OK\r\n" +
                 "content-type: application/json; charset=utf-8\r\n" +
                 "content-length: 2\r\n" +
                 "connection: close\r\n" +
                 "\r\n" +
-                "{}").getBytes());
+                "{}\r\n").getBytes());
         default404Alive = Unpooled.wrappedBuffer(("HTTP/1.1 404 OK\r\n" +
                 "content-type: application/json; charset=utf-8\r\n" +
                 "content-length: 2\r\n" +
                 "connection: keep-alive\r\n" +
                 "\r\n" +
-                "{}").getBytes());
+                "{}\r\n").getBytes());
 
         responseStart = ("HTTP/1.1 200 OK\r\n" +
                 "content-type: application/json; charset=utf-8\r\n" +
@@ -212,6 +212,7 @@ public class ByteRequestHandler extends ChannelInboundHandlerAdapter {
                 buf.writeBytes(Integer.toString(resp.getResponse().length).getBytes());
                 buf.writeBytes(("\r\n\r\n").getBytes());
                 buf.writeBytes(resp.getResponse());
+                buf.writeBytes(("\r\n").getBytes());
                 response = buf;
             } else if (resp.getStatus() == 200) {
                 if (keepAlive) {

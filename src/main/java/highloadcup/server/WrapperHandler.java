@@ -32,10 +32,10 @@ public class WrapperHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
        // printResponse((ByteBuf) msg);
        // System.out.println(((ByteBuf)msg).toString(Charset.defaultCharset()));
-        ctx.write(msg);
+        ctx.writeAndFlush(msg,ctx.voidPromise());
        // ((ByteBuf) msg).release();
        // ctx.flush();
-      //  ctx.fireChannelReadComplete();
+     //   ctx.fireChannelReadComplete();
        // ctx.flush();
        //ctx.flush();
     }
